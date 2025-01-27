@@ -18,7 +18,7 @@ if not groq_api_key:
 
 client = Groq(api_key=groq_api_key)
 
-chat_model = "gema2-9b-isto"
+chat_model = "mixtral-8x7b-32768"
 voice_model = "pt-BR-AntonioNeural"
 temperature = 0.5
 velocidade_voz = '+50%'
