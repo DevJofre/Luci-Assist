@@ -63,3 +63,42 @@ def speech_to_text():
 
     except sr.RequestError as e:
         print(f"Erro no serviço de reconhecimento de voz; {e}")
+
+
+def rext_generation(mensagem, list_mensg, chat_model, voice_model, temperature, voice_speed):
+    if not mensagem:
+        print("Mensagem vazia, tente novamente.")
+        return
+    list_mensg.append({"role": "user", "content": mensagem})
+
+    respond = client.chat.completions.create(
+        model=chat_model,
+        messages=list_mensg,
+        temperature=temperature,
+        stream=True
+    )
+
+    answer = ""
+    accumulated_text = ""
+    text_final = ""
+
+    print("Assistente: ", end='')
+
+    for event in responde:
+
+        answer = event. choices[0].delta.content
+        answer = answer or ""
+        accumulated_text += answer
+        text_final += answer
+        print(answer, end='', flush=True)
+
+        if '-' in answer or '' in answer or ':' in answer or '!' in answer or '?' in answer or (answer == "" and accumulated_text != ''):
+        text_to_speech(accumulated_text, voice_model, voice_speed)
+        accumulated_text = ""
+        print()
+
+    list_mensg.append(("role": "assistant", "content": texto_final))
+
+
+def text_to_speech(mensagem_resposta, voice_model, velocidade):
+    if mensagem_resposta != "":
