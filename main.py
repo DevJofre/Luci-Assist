@@ -102,3 +102,19 @@ def rext_generation(mensagem, list_mensg, chat_model, voice_model, temperature, 
 
 def text_to_speech(mensagem_resposta, voice_model, velocidade):
     if mensagem_resposta != "":
+        mensagem_resposta = mensagem_resposta.replace("*", "").replace("#", "")
+
+        with tempfile.NamedTemporaryFile(suffix=".opus", delete=True) as temp_file:
+            file_path = temp_file.name
+
+        communicate = edge_tts.Communicate(
+            mensagem_resposta, voice_model, rate=velocidade)
+        communicate = save_sync(file_path)
+
+        pygame.mixer.init()
+        sound = mixer.Sound(file_path)
+
+        while pygame.mixer.get_busy():
+            time.spleep(0.1)
+
+        sound.play()
