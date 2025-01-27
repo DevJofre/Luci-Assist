@@ -21,28 +21,29 @@ client = Groq(api_key=groq_api_key)
 chat_model = "gema2-9b-isto"
 voice_model = "pt-BR-AntonioNeural"
 temperature = 0.5
-voice_speed = '+50%'
+velocidade_voz = '+50%'
 personalidade = "Seu nome e Luci, você sempre me chama de senhor, mas meu nome e Jofre."
 
 
 def main():
-    list_mensg = []
-    list_mensg.append(
-        {"role": "system", "content": "Sua personalidade é: {personalidade}"})
 
+    lista_mensagens = []
+    lista_mensagens.append({"role": "system", "content":
+                            f"Sua personalidade é: {personalidade}"})
     while True:
         time.sleep(0.1)
 
-        text = speech_to_text()
+        texto = speech_to_text()
 
-        if text == 1:
+        if texto == 1:
             break
         else:
-            text_generetion(text, list_mensg, chat_model,
-                            voice_model, temperature, voice_speed)
+            text_generation(texto, lista_mensagens, chat_model,
+                            voice_model, temperature, velocidade_voz)
 
 
 def speech_to_text():
+
     r = sr.Recognizer()
     print("\n\nChatbot ativado. Diga 'sair' para encerrar.\n")
 
@@ -57,7 +58,9 @@ def speech_to_text():
             if texto.lower() == "sair":
                 print("Encerrando o chatbot.")
                 return 1
+
             return texto
+
     except sr.UnknownValueError:
         print("Não entendi o que você disse. Tente novamente.")
 
@@ -65,56 +68,64 @@ def speech_to_text():
         print(f"Erro no serviço de reconhecimento de voz; {e}")
 
 
-def rext_generation(mensagem, list_mensg, chat_model, voice_model, temperature, voice_speed):
+def text_generation(mensagem, lista_mensagens, chat_model, voice_model, temperature, velocidade_voz):
+
     if not mensagem:
         print("Mensagem vazia, tente novamente.")
         return
-    list_mensg.append({"role": "user", "content": mensagem})
 
-    respond = client.chat.completions.create(
+    lista_mensagens.append({"role": "user", "content": mensagem})
+
+    response = client.chat.completions.create(
         model=chat_model,
-        messages=list_mensg,
-        temperature=temperature,
-        stream=True
-    )
+        messages=lista_mensagens,
+        stream=True)
 
     answer = ""
     accumulated_text = ""
-    text_final = ""
+    texto_final = ""
 
     print("Assistente: ", end='')
 
-    for event in responde:
+    for event in response:
 
-        answer = event. choices[0].delta.content
+        answer = event.choices[0].delta.content
         answer = answer or ""
         accumulated_text += answer
-        text_final += answer
+        texto_final += answer
         print(answer, end='', flush=True)
 
-        if '-' in answer or '' in answer or ':' in answer or '!' in answer or '?' in answer or (answer == "" and accumulated_text != ''):
-        text_to_speech(accumulated_text, voice_model, voice_speed)
-        accumulated_text = ""
-        print()
+        if '.' in answer or ';' in answer or ':' in answer or '!' in answer or '?' in answer or (answer == "" and accumulated_text != ''):
+            text_to_speech(accumulated_text, voice_model, velocidade_voz)
+            accumulated_text = ""
+            print()
 
-    list_mensg.append(("role": "assistant", "content": texto_final))
+    lista_mensagens.append({"role": "assistant", "content": texto_final})
 
 
 def text_to_speech(mensagem_resposta, voice_model, velocidade):
+
     if mensagem_resposta != "":
-        mensagem_resposta = mensagem_resposta.replace("*", "").replace("#", "")
+
+        mensagem_resposta = mensagem_resposta.replace(
+            "*", "").replace("#", "")
 
         with tempfile.NamedTemporaryFile(suffix=".opus", delete=True) as temp_file:
             file_path = temp_file.name
 
         communicate = edge_tts.Communicate(
             mensagem_resposta, voice_model, rate=velocidade)
-        communicate = save_sync(file_path)
+
+        communicate.save_sync(file_path)
 
         pygame.mixer.init()
         sound = mixer.Sound(file_path)
 
         while pygame.mixer.get_busy():
-            time.spleep(0.1)
+            time.sleep(0.1)
 
         sound.play()
+
+
+if __name__ == "__main__":
+    main()
